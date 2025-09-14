@@ -1,0 +1,50 @@
+def assemble_contigs(graph: Dict[str, List[str]], k: int) -> List[str]:
+    """
+    Assemble contigs from the de Bruijn graph by following linear paths
+    """
+    contigs = []
+    visited = set()
+    
+    # Find starting nodes (nodes with no incoming edges or with multiple outgoing edges)
+    for node in graph:
+        if node not in visited:
+            # Check if this is a good starting point
+            is_start_node = True
+            
+            # Extend the contig in both directions
+            # First, extend backward as much as possible
+            current = node
+            while True:
+                has_predecessors = False
+                for pred in graph:
+                    if current in graph[pred]:
+                        has_predecessors = True
+                        if pred not in visited:
+                            current = pred
+                            break
+                if not has_predecessors:
+                    break
+            
+            # Now extend forward from this point
+            contig = current
+            visited.add(current)
+            
+            while current in graph and graph[current]:
+                next_nodes = graph[current]
+                if len(next_nodes) == 1:
+                    next_node = next_nodes[0]
+                    if next_node not in visited:
+                        contig += next_node[-1]  # Add the last character
+                        current = next_node
+                        visited.add(current)
+                    else:
+                        break
+                else:
+                    # Branching point, stop here
+                    break
+            
+            contigs.append(contig)
+    
+    # Sort by length descending
+    contigs.sort(key=lambda x: len(x), reverse=True)
+    return contigs
